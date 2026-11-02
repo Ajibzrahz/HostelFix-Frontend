@@ -7,9 +7,6 @@ const nextConfig = {
       { source: '/backend-health', destination: `${backend}/health` },
     ]
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     unoptimized: true,
   },
