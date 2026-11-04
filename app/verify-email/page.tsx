@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 
 type VerificationStatus = "loading" | "success" | "error";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
 
   const token = searchParams.get("token");
@@ -60,42 +60,59 @@ export default function VerifyEmailPage() {
   }, [token, email]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
-        <div className="mb-4 text-3xl">
-          {status === "loading" && "⏳"}
-          {status === "success" && "✓"}
-          {status === "error" && "✕"}
-        </div>
-
-        <h1 className="mb-3 text-2xl font-semibold text-slate-900">
-          {status === "loading"
-            ? "Verifying your email"
-            : status === "success"
-              ? "Email verified"
-              : "Verification failed"}
-        </h1>
-
-        <p className="mb-6 text-sm text-slate-600">{message}</p>
-
-        {status === "success" && (
-          <Link
-            href="/login"
-            className="inline-flex rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-700"
-          >
-            Continue to login
-          </Link>
-        )}
-
-        {status === "error" && (
-          <Link
-            href="/login"
-            className="inline-flex rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-700"
-          >
-            Back to login
-          </Link>
-        )}
+    <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
+      <div className="mb-4 text-3xl">
+        {status === "loading" && "⏳"}
+        {status === "success" && "✓"}
+        {status === "error" && "✕"}
       </div>
+
+      <h1 className="mb-3 text-2xl font-semibold text-slate-900">
+        {status === "loading"
+          ? "Verifying your email"
+          : status === "success"
+            ? "Email verified"
+            : "Verification failed"}
+      </h1>
+
+      <p className="mb-6 text-sm text-slate-600">{message}</p>
+
+      {status === "success" && (
+        <Link
+          href="/login"
+          className="inline-flex rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-700"
+        >
+          Continue to login
+        </Link>
+      )}
+
+      {status === "error" && (
+        <Link
+          href="/login"
+          className="inline-flex rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-700"
+        >
+          Back to login
+        </Link>
+      )}
+    </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <Suspense
+        fallback={
+          <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
+            <div className="mb-4 text-3xl">⏳</div>
+            <h1 className="mb-3 text-2xl font-semibold text-slate-900">
+              Loading verification...
+            </h1>
+          </div>
+        }
+      >
+        <VerifyEmailContent />
+      </Suspense>
     </main>
   );
 }
