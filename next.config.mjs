@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
-    const backend = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/+$/, "");
-
-    if (!backend) {
-      throw new Error("NEXT_PUBLIC_BACKEND_URL is missing.");
-    }
+    // Provide a fallback URL to prevent throwing during build time
+    const rawBackend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+    const backend = rawBackend.replace(/\/+$/, "");
 
     return [
       {
