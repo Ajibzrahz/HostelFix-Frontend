@@ -168,3 +168,34 @@
     background: color-mix(in oklch, var(--primary) 24%, transparent);
   }
 }
+
+
+/* Consistent readable form controls */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    color: #0f172a;
+    background-color: #ffffff;
+    color-scheme: light;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  select option {
+    color: #0f172a;
+    background-color: #ffffff;
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    color: #64748b;
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+  }
+}
