@@ -26,17 +26,10 @@ type ApiOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
 };
 
-// Backend URL from the environment configuration.
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/+$/, "");
-
 export async function api<T>(
   path: string,
   options: ApiOptions = {},
 ): Promise<T | undefined> {
-  if (!API_BASE_URL) {
-    throw new Error("NEXT_PUBLIC_BACKEND_URL is not configured.");
-  }
-
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   const headers = new Headers(options.headers);
@@ -49,7 +42,7 @@ export async function api<T>(
     body = JSON.stringify(options.body);
   }
 
-  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
+  const response = await fetch(normalizedPath, {
     ...options,
     headers,
     body,
