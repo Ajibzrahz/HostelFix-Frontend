@@ -172,6 +172,7 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -184,6 +185,7 @@ export function LoginForm() {
   async function submit(values: z.infer<typeof loginSchema>) {
     setLoading(true);
     setError("");
+    setEmailNotVerified(false);
 
     try {
       await api("/api/v1/auth/login", {
@@ -201,15 +203,16 @@ export function LoginForm() {
 
       router.replace("/tickets");
     } catch (cause) {
-      setError(
-        cause instanceof ApiError && cause.code === "EMAIL_NOT_VERIFIED"
-          ? "Please verify your email before logging in."
-          : cause instanceof Error
+      if (cause instanceof ApiError && cause.code === "EMAIL_NOT_VERIFIED") {
+        setEmailNotVerified(true);
+        setError("Please verify your email before logging in.");
+      } else {
+        setError(
+          cause instanceof Error
             ? cause.message
             : "Unable to log in right now.",
-      );
-    } finally {
-      setLoading(false);
+        );
+      }
     }
   }
 
@@ -243,6 +246,17 @@ export function LoginForm() {
 
         {error && <FormError message={error} />}
 
+        {emailNotVerified && (
+          <Link
+            href={`/resend-verification?email=${encodeURIComponent(
+              form.getValues("email"),
+            )}`}
+            className="block text-sm font-semibold text-[#087f8c] hover:underline"
+          >
+            Resend verification email
+          </Link>
+        )}
+
         <button
           type="submit"
           disabled={loading}
@@ -270,7 +284,7 @@ export function LoginForm() {
           </Link>
 
           <Link
-            href="/register?resend=1"
+            href="/resend-verification"
             className="text-slate-500 transition hover:text-slate-900"
           >
             Resend verification
@@ -351,6 +365,8 @@ export function RegisterForm() {
             <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#087f8c]" />
             Your account will be ready once your email address is verified.
           </div>
+
+          <ResendVerificationForm initialEmail={form.getValues("email")} />
 
           <Link
             href="/login"
@@ -444,5 +460,86 @@ export function RegisterForm() {
         </form>
       )}
     </AuthShell>
+  );
+}
+
+export function ResendVerificationForm({
+  initialEmail = "",
+}: {
+  initialEmail?: string;
+}) {
+  const [email, setEmail] = useState(initialEmail);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+
+    try {
+      await api("/api/v1/auth/resend-verification", {
+        method: "POST",
+        body: { email },
+      });
+
+      setSuccess(true);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to process your request.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-5">
+      <Field label="Email address">
+        <input
+          className={inputClass}
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </Field>
+
+      {error && <FormError message={error} />}
+
+      {success && (
+        <div
+          className="rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-6 text-teal-800"
+          role="status"
+        >
+          If that account exists and is not verified, a new verification link
+          has been sent. Please check your inbox.
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#087f8c] text-sm font-semibold text-white transition hover:bg-[#066b76] disabled:opacity-60"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          <>
+            <Mail className="size-4" />
+            Resend verification email
+          </>
+        )}
+      </button>
+    </form>
   );
 }

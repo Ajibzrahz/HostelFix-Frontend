@@ -12,7 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import type { User } from "@/lib/auth";
 
-const publicPaths = new Set(["/", "/login", "/register", "/verify-email"]);
+const publicPaths = new Set(["/", "/login", "/register", "/verify-email", "/resend-verification"]);
 
 type AuthContextValue = {
   user: User | null;
@@ -136,3 +136,4 @@ export function useAuth() {
 
   return context;
 }
+
